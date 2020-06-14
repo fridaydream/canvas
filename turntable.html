@@ -103,8 +103,11 @@
     // 时间点击添加
     const btn = document.getElementById('btn')
     btn.onclick = go
+
+    // 转4圈，最后找到对应的奖项
+    const deg = 360 * 4 + Math.random() * 6 * (360 / 6)
     function go() {
-      canvas.style.transform = "rotate(" + 1000 + "deg)";
+      canvas.style.transform = "rotate(" + deg + "deg)";
       canvas.style.transition = "all 5s";
     }
 
