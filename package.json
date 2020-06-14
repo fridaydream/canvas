@@ -1,0 +1,17 @@
+{
+  "name": "canvas",
+  "version": "1.0.0",
+  "description": "turntable canvas 大转盘",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": [
+    "canvas",
+    "大转盘",
+    "canvas"
+  ],
+  "author": "cp",
+  "license": "MIT"
+}
