@@ -43,13 +43,12 @@
     const ctx = canvas.getContext('2d')
     const width = 800
     const height = 800
-    // const count = 8 // 奖励数量
     const blockTexts = ['一等奖', '二等奖', '三等奖', '谢谢惠顾', '一等奖', '二等奖', '三等奖', '谢谢惠顾']
     const pointerCount = 48 // 环上的点
-    const count = blockTexts.length
-    ctx.translate(width / 2, height / 2)
+    const count = blockTexts.length // 奖励数量
+    ctx.translate(width / 2, height / 2) // 移动到中心点
 
-    // 中间圆
+    // 环圆
     ctx.save(); 
     ctx.beginPath();
     ctx.strokeStyle = '#a3d2e4';
@@ -100,7 +99,7 @@
     }
     ctx.restore();
 
-    // 时间点击添加
+    // 抽奖按钮点击添加
     const btn = document.getElementById('btn')
     btn.onclick = go
 
