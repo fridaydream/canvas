@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    .gauge-wrap{
+      height: 66vw;
+    }
+    .gauge{
+      width: 100%;
+      height: 100%;
+    }
+    .gauge-wrap-high{
+      background: -webkit-linear-gradient(135deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.19) 26%, rgba(255,255,255,0.25) 28%, rgba(255,255,255,0.00) 100%);
+    }
+    .gauge-high{
+      background: -webkit-linear-gradient(90deg, #414141 3%, #030303 100%);
+    }
+    .gauge-wrap-middle{
+      background: -webkit-linear-gradient(135deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.19) 38%, rgba(255,255,255,0.25) 28%, rgba(255,255,255,0.00) 100%);
+    }
+    .gauge-middle{
+      background: -webkit-linear-gradient(90deg, #2B5197 0%, #1E3C72 100%);
+    }
+    .gauge-wrap-low{
+      background: -webkit-linear-gradient(135deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.19) 38%, rgba(255,255,255,0.25) 28%, rgba(255,255,255,0.00) 100%);
+    }
+    .gauge-low{
+      background: -webkit-linear-gradient(90deg, #F48B2E 0%, #FD654F 100%);
+    }
+  </style>
+</head>
+<body>
+  <div class="gauge-wrap">
+    <canvas id="gauge" class="gauge" width="750" height="500"></canvas>
+    
+  </div>
+  <script>
+    function renderGuage () {
+      const canvas = document.getElementById('gauge')
+      const ctx = canvas.getContext('2d')
+      const width = 750
+      const height = width * 2 / 3
+      const deg = Math.PI / 40 // 每个刻度的弧度
+      const score = 90
+      let startScore = 0
+      const speed = 1
+      const wrap = document.querySelector('.gauge-wrap')
+      if (score > 0 && score <= 65) {
+        wrap.classList.add('gauge-wrap-low')
+        canvas.classList.add('gauge-low')
+      } else if (score > 65 && score <= 85) {
+        wrap.classList.add('gauge-wrap-middle')
+        canvas.classList.add('gauge-middle')
+      } else {
+        wrap.classList.add('gauge-wrap-high')
+        canvas.classList.add('gauge-high')
+      }
+      function text (score) {
+        ctx.save()
+        // 服务分数字
+        ctx.fillStyle = '#fff'
+        ctx.font = '126px Bebas'
+        ctx.textAlign = 'center'
+        ctx.fillText(score, width / 2, height * 12 / 17)
+        ctx.restore()
+      }
+
+      (function drawFrame () {
+        if (startScore < score - speed) {
+          startScore += speed
+        } else if (startScore >= score - speed && startScore < score) {
+          startScore += 1
+        }
+        ctx.clearRect(0, 0, width, height)
+        text(startScore)
+
+        ctx.save() // 细分刻度线
+        ctx.translate(width / 2, height * 6 / 9)
+        ctx.rotate(38 * deg)
+        for (let i = 0; i < 45; i++) {
+          ctx.beginPath()
+          ctx.lineWidth = 4
+          // 运动时没有到达的刻度样式不一样
+          if (44 / 100 * startScore >= i || (i === 44 && startScore >= score)) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 1)'
+          } else {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+          }
+          ctx.moveTo(220, 0)
+          if (Math.floor(44 / 100 * score) === i && startScore >= score) {
+            ctx.lineTo(260, 0)
+          } else {
+            ctx.lineTo(240, 0)
+          }
+          ctx.stroke()
+          ctx.rotate(deg)
+        }
+        ctx.restore()
+
+        if (startScore < score) {
+          window.requestAnimationFrame(drawFrame)
+        }
+      })()
+    }
+    renderGuage()
+  </script>
+</body>
+</html>
