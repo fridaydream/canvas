@@ -41,6 +41,7 @@
     <canvas id="gauge" class="gauge" width="750" height="500"></canvas>
   </div>
   <script>
+    let timer
     function renderGuage () {
       const canvas = document.getElementById('gauge')
       const ctx = canvas.getContext('2d')
@@ -104,7 +105,9 @@
         ctx.restore()
 
         if (startScore < score) {
-          window.requestAnimationFrame(drawFrame)
+          timer = requestAnimationFrame(drawFrame)
+        } else {
+          cancelAnimationFrame(timer);
         }
       })()
     }
