@@ -34,80 +34,109 @@
   </style>
 </head>
 <body>
+  <div>
+    <input id="input" placeholder="require array">
+    <button id="submit">submit</button>
+    eg: <span id="eg-text"></span>
+  </div>
   <div class="content">
+    
     <canvas id="turntable" width="800" height="800" class="turntable"></canvas>
     <img src="./btn.png" alt="" id="btn" class="btn">
   </div>
   <script>
     const canvas = document.getElementById('turntable')
+    const submit = document.getElementById('submit')
+    const input = document.getElementById('input')
+    const egText = document.getElementById('eg-text')
+    
+    let blockTexts = ['陈烨', '韩硕', '李昊', '刘磊', '丹丹', '潘志成', '奇峰', '占海', '贤明', '陈盼', '于超', '文慧']
+    egText.innerHTML = JSON.stringify(blockTexts)
+    submit.onclick = function () {
+      try {
+        blockTexts = JSON.parse(input.value || '[]')
+        egText.innerHTML = input.value
+        renderCanvas()
+      } catch (error) {
+        console.error('transform json error msg', error)
+      }
+    }
     const ctx = canvas.getContext('2d')
     const width = 800
     const height = 800
-    const blockTexts = ['一等奖', '二等奖', '三等奖', '谢谢惠顾', '一等奖', '二等奖', '三等奖', '谢谢惠顾']
-    const pointerCount = 48 // 环上的点
-    const count = blockTexts.length // 奖励数量
-    ctx.translate(width / 2, height / 2) // 移动到中心点
-
-    // 环圆
-    ctx.save(); 
-    ctx.beginPath();
-    ctx.strokeStyle = '#a3d2e4';
-    ctx.lineWidth = 40;
-    ctx.arc(0, 0, 370, 0, 2 * Math.PI);
-    ctx.stroke();
-    ctx.restore();
-
-    // 环上点
-    ctx.save();
-    ctx.fillStyle = '#fff';
-    for (var i = 0; i < pointerCount; i++) {
-      const x = 370 * Math.sin(2 * Math.PI * i / pointerCount)
-      const y = 370 * Math.cos(2 * Math.PI * i / pointerCount)
+    // const blockTexts = ['一等奖', '二等奖', '三等奖', '谢谢惠顾', '一等奖', '二等奖', '三等奖', '谢谢惠顾']
+    renderCanvas()
+    function renderCanvas() {
+      ctx.save(); 
+      ctx.clearRect(0, 0, 800, 800)
+      const pointerCount = 48 // 环上的点
+      const count = blockTexts.length // 奖励数量
+      ctx.translate(width / 2, height / 2) // 移动到中心点
+      
+      // 环圆
+      ctx.save(); 
       ctx.beginPath();
-      ctx.arc(x, y, 10, 0, 2 * Math.PI)
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
+      ctx.strokeStyle = '#a3d2e4';
+      ctx.lineWidth = 40;
+      ctx.arc(0, 0, 370, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.restore();
 
-    // 内环
-    ctx.save();
-    for (i = 0; i < count; i++) {
-      ctx.fillStyle = i % 2 === 0 ? '#c1ecff' : '#def4ff'
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.arc(0, 0, 350, 2 * Math.PI / count * i, 2 * Math.PI / count * (i + 1))
-      ctx.closePath()
-      ctx.fill()
-    }
-    ctx.restore();
-
-    // 内环奖品文字
-    ctx.save();
-    ctx.rotate(2 * Math.PI / count / 2)
-    for (i = 0; i < count; i++) {
-      ctx.fillStyle = '#80b4ce'
-      ctx.textAlign = 'center'
-      ctx.font = '42px Arial'
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      for (j = 0, len = blockTexts[i].length; j < len; j++) {
-        ctx.fillText(blockTexts[i][j], 0, (180 / len) * j - 240)
+      // 环上点
+      ctx.save();
+      ctx.fillStyle = '#fff';
+      for (var i = 0; i < pointerCount; i++) {
+        const x = 370 * Math.sin(2 * Math.PI * i / pointerCount)
+        const y = 370 * Math.cos(2 * Math.PI * i / pointerCount)
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, 2 * Math.PI)
+        ctx.closePath();
+        ctx.fill();
       }
-      ctx.rotate(2 * Math.PI / count)
-      ctx.closePath()
-    }
-    ctx.restore();
+      ctx.restore();
 
+      // 内环
+      ctx.save();
+      ctx.rotate( 1 / 2 * Math.PI)
+      for (i = 0; i < count; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#c1ecff' : '#def4ff'
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.arc(0, 0, 350, 0, 2 * Math.PI / count)
+        ctx.closePath()
+        ctx.fill()
+        ctx.rotate(2 * Math.PI / count)
+      }
+      ctx.restore();
+
+      // 内环奖品文字
+      ctx.save();
+      ctx.rotate(Math.PI / count)
+      for (i = 0; i < count; i++) {
+        ctx.fillStyle = '#80b4ce'
+        ctx.textAlign = 'center'
+        ctx.font = '42px Arial'
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        for (j = 0, len = blockTexts[i].length; j < len; j++) {
+          ctx.fillText(blockTexts[i][j], 0, (180 / len) * j - 240)
+        }
+        ctx.rotate(2 * Math.PI / count)
+        ctx.closePath()
+      }
+      ctx.restore();
+      ctx.restore();
+    }
+    
     // 抽奖按钮点击添加
     const btn = document.getElementById('btn')
     btn.onclick = go
 
-    // 转4圈，最后找到对应的奖项
-    const deg = 360 * 4 + Math.random() * 6 * (360 / 6)
+    // 转3圈，最后找到对应的奖项
+    const deg = 360 * 3 + Math.random() * 360
     function go() {
       canvas.style.transform = "rotate(" + deg + "deg)";
-      canvas.style.transition = "all 5s";
+      canvas.style.transition = "all 4s";
     }
 
   </script>
