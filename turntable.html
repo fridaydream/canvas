@@ -137,6 +137,14 @@
     function go() {
       canvas.style.transform = "rotate(" + deg + "deg)";
       canvas.style.transition = "all 4s";
+      setTimeout(() => {
+        reset()
+        renderCanvas()
+      }, 10000)
+    }
+
+    function reset() {
+      canvas.removeAttribute('style')
     }
 
   </script>
