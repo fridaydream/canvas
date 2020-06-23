@@ -31,6 +31,10 @@
       left: 118px;
       width: 64px;
     }
+    .tip{
+      color: #999;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -39,11 +43,14 @@
     <button id="submit">submit</button>
     eg: <span id="eg-text"></span>
   </div>
-  <div class="content">
-    
+  <section class="content">
     <canvas id="turntable" width="800" height="800" class="turntable"></canvas>
     <img src="./btn.png" alt="" id="btn" class="btn">
-  </div>
+    <p class="tip">
+      10秒内不能重复点击，10秒后重置转盘
+    </p>
+  </section>
+  
   <script>
     const canvas = document.getElementById('turntable')
     const submit = document.getElementById('submit')
