@@ -139,14 +139,13 @@
     const btn = document.getElementById('btn')
     btn.onclick = go
 
-    // 转3圈，最后找到对应的奖项
-    const deg = 360 * 3 + Math.random() * 360
     let flag
     function go() {
       // 上一次点击完成之前再次点击无效
       if (flag) return
       flag = true
-      canvas.style.transform = "rotate(" + deg + "deg)";
+      // 转3圈，最后找到对应的奖项
+      canvas.style.transform = "rotate(" + (360 * 3 + Math.random() * 360) + "deg)";
       canvas.style.transition = "all 4s";
       setTimeout(() => {
         reset()
