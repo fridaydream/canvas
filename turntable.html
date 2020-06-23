@@ -134,12 +134,17 @@
 
     // 转3圈，最后找到对应的奖项
     const deg = 360 * 3 + Math.random() * 360
+    let flag
     function go() {
+      // 上一次点击完成之前再次点击无效
+      if (flag) return
+      flag = true
       canvas.style.transform = "rotate(" + deg + "deg)";
       canvas.style.transition = "all 4s";
       setTimeout(() => {
         reset()
         renderCanvas()
+        flag = false
       }, 10000)
     }
 
