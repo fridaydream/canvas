@@ -147,8 +147,7 @@
       }
       // 获取第二次运动轨迹坐标
       getSecondVectors(lastVector) {
-        console.log('lastVector', lastVector);
-        const vertical1 = this.getVerticalVectors(lastVector.y, lastVector.y - 180 / viewWidth * width - riderHeight / 2, lastVector.x, lastVector.direction)
+        const vertical1 = this.getVerticalVectors(lastVector.y, lastVector.y - 174 / viewWidth * width - riderHeight / 2, lastVector.x, lastVector.direction)
         const line1 = this.getLineVectors(vertical1[vertical1.length - 1].x, vertical1[vertical1.length - 1].x - 138 / viewWidth * width, vertical1[vertical1.length - 1].y)
         const round1 = this.getRoundVectors(line1[line1.length - 1].x, line1[line1.length - 1].y, 360, 180, 165 / viewHeight * height)
         const round2 = this.getRoundVectors(round1[round1.length - 1].x, round1[round1.length - 1].y, 0, 180, 215 / viewHeight * height)
