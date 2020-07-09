@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta charset="utf-8"> 
+<div style="border:1px solid #ccc">
+<canvas id="canvas-1" width="520" height="300">
+</canvas>
+</div>
+
+<script>
+var c   = document.getElementById("canvas-1");
+var ctx = c.getContext("2d");
+
+ctx.lineWidth = 8
+ctx.strokeRect(10,10,100,100);
+
+function draw(e) {
+    var x = e.layerX || e.offsetX;
+    var y = e.layerY || e.offsetY;
+
+    ctx.beginPath();
+    ctx.rect(10, 10, 100, 100);
+    ctx.stroke();
+
+    if ( ctx.isPointInPath(x,y))
+    {
+        ctx.strokeStyle="red"
+    } else {
+        ctx.strokeStyle="black";
+    }
+
+    ctx.rect(10, 10, 100, 100);
+    ctx.stroke();
+}
+
+c.addEventListener("mousemove",function(e){draw(e)});
+</script>

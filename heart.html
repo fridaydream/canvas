@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>和老袁学习-heart</title>
+  <style>
+    body{
+      background: #2c0d61;
+    }
+  </style>
+</head>
+<body>
+  <canvas height="300" width="300" id="ydtest"></canvas>
+  <script>
+    class Wave {
+      constructor({
+        canvasWidth, // 轴长
+        canvasHeight, // 轴高
+        waveWidth = 0.055, // 波浪宽度 数越小越宽
+        waveHeight = 6, // 波浪高度
+        speed=0.04,
+        xOffset = 0,
+        colors = ['#f39c6b', '#a0563b']
+      }) {
+        this.points = []
+        this.startX = 0
+        this.colors = colors;
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.waveWidth = waveWidth;
+        this.waveHeight = waveHeight;
+        this.speed = speed;
+        this.xOffset = xOffset;
+      }
+      getChartColor(ctx) {
+        const radius = this.canvasWidth / 2
+        const grd = ctx.createLinearGradient(radius, radius, radius, this.canvasHeight)
+        grd.addColorStop(0, this.colors[0])
+        grd.addColorStop(1, this.colors[1])
+        return grd;
+      }
+      // 波浪内部的绘制
+      draw(ctx) {
+        ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+        ctx.save()
+        const points = this.points
+        ctx.beginPath()
+        for(let i = 0; i < points.length; i++) {
+          // point = { x, y }
+          const point = points[i]
+          ctx.lineTo(point[0], point[1])
+        }
+        ctx.lineTo(this.canvasWidth, this.canvasHeight)
+        ctx.lineTo(this.startX, this.canvasHeight)
+        ctx.lineTo(points[0][0], points[0][1])
+        ctx.fillStyle = this.getChartColor(ctx)
+        ctx.fill()
+        ctx.restore()
+      }
+      // 更新当前的波浪
+      update({nowRange} = {}) {
+        this.points = []
+        const {
+          startX,
+          canvasWidth,
+          canvasHeight,
+          waveWidth = 0.055,
+          waveHeight = 6,
+          speed=0.04,
+          xOffset = 0,
+          colors 
+        } = this
+        // nowRange = D
+        for (let x = startX; x < startX + canvasWidth + xOffset; x += 20 / canvasWidth) {
+          // y = A sin(Bx + C) + D
+          // y = 波浪高度 * sin(x*波浪宽度 + 水平位移)
+          const y = waveHeight * Math.sin((startX + x) * waveWidth + xOffset)
+          const dY =  canvasHeight * (1- (nowRange / 100))
+          this.points.push([x, dY + y])
+        }
+        this.xOffset += this.speed
+      }
+    }
+    const canvas = document.getElementById('ydtest')
+    const ctx = canvas.getContext('2d')
+    const drawHeart = (ctx, x = 150, y = 130, a = 9) => {
+      ctx.clearRect(0, 0, 300, 300)
+      // 所有心上小点的集合
+      const vectors = []
+      for (let i = 0; i < 50; i++) {
+        // 设置一下心上两点之间的角度，具体分成多少份
+        const step = i / 50 * (Math.PI * 2)
+        const vector = {
+          x: a * (16 * Math.pow(Math.sin(step), 3)),
+          y: a * (13 * Math.cos(step) - 5 * Math.cos(2 * step) - 2 * Math.cos(3 * step) - Math.cos(4 * step)),
+        }
+        vectors.push(vector)
+      }
+      ctx.save()
+      ctx.beginPath()
+      ctx.translate(x, y)
+      ctx.rotate(Math.PI)
+      for (let i = 0; i < 50; i++) {
+        const vector = vectors[i]
+        ctx.lineTo(vector.x, vector.y)
+      }
+      ctx.strokeStyle = 'rgba(186, 165, 130, .6)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+      ctx.closePath()
+      ctx.restore()
+      ctx.clip()
+    }
+    drawHeart(ctx)
+    const wave1 = new Wave({
+      canvasWidth: 300,
+      canvasHeight: 300,
+      waveWidth: 0.055,
+      waveHeight: 4,
+      speed: 0.04,
+      xOffset: 0,
+      colors: ['rgba(243, 156, 107, 0.48)', 'rgba(160, 86, 59, 0.48)']
+    })
+    const wave2 = new Wave({
+      canvasWidth: 300,
+      canvasHeight: 300,
+      waveWidth: 0.04,
+      waveHeight: 3,
+      speed: 0.02,
+      xOffset: 2,
+    })
+    let nowRange = 0
+    let rangeRange = 60
+    const draw = () => {
+      if (nowRange <= rangeRange) {
+        nowRange += 1
+      }
+      // 把波浪绘制到心里
+      // 更新当前的位置
+      wave1.update({
+        nowRange
+      })
+      // 重新绘制当前的相移动
+      wave1.draw(ctx)
+      wave2.update({
+        nowRange
+      })
+      wave2.draw(ctx)
+
+      window.requestAnimationFrame(draw)
+    }
+    draw()
+  </script>
+</body>
+</html>

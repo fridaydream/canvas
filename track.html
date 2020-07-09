@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    html,body,canvas{padding: 0;margin: 0;}
+    html,body{
+      width: 100%;
+      height: 100%;
+    }
+    .track{
+      background: url('./images/map.jpg');
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="track" class="track" style="width: 100%;"></canvas>
+  <script>
+    const trackEle = document.getElementById('track');
+    const width = window.innerWidth
+    const height = width * 7
+    trackEle.width = width
+    trackEle.height = height
+    const ctx = trackEle.getContext('2d')
+    const riderWidth = 90;
+    const riderHeight = 100;
+    const riderRight = new Image();
+    const riderLeft = new Image();
+    riderRight.src = "./images/rider.png";
+    riderLeft.src = './images/rider2.png';
+    class Track {
+      constructor(width, height, riderWidth, riderHeight) {
+        this.width = width
+        this.height = height
+        this.riderWidth = riderWidth
+        this.riderHeight = riderHeight
+        this.direction = true // 默认x轴正方向
+        
+      }
+      isPointInPath(riderPosition, clickPosition) {
+        const {
+          x: startX,
+          y: startY,
+        } = riderPosition
+        const endX = startX + this.riderWidth
+        const endY = startY + this.riderHeight
+        const {
+          x,
+          y
+        } = clickPosition
+        if ((startX < x && endX > x) && (startY < y && endY > y)) {
+          return true
+        }
+        return false
+      }
+      renderRider(ctx, x, y, direction) {
+        ctx.clearRect(0, 0 , width, height)
+        // 如果改变了方向
+        ctx.drawImage(direction ? riderRight : riderLeft, x, y, riderWidth, riderHeight);
+      }
+      /**
+       * 竖直移动
+       * @param startY 开始y位置
+       * @param endY 结束y位置
+       * @param x x轴坐标
+       * @param direction x轴方向
+       */
+       getVerticalVectors(startY, endY, x, direction) {
+        const vectors = []
+        for (let i = startY; i > endY; i -= 2) {
+          const vector = {
+            x,
+            y: i,
+            direction
+          }
+          vectors.push(vector)
+        }
+        return vectors;
+      }
+      /**
+       * 水平移动
+       * @param startX 开始x位置
+       * @param endX 结束x位置
+       * @param y y轴坐标
+       */
+      getLineVectors(startX, endX, y) {
+        const vectors = []
+        const direction = startX < endX // 开始位置小于结束位置，正方向移动
+        if (!direction) {
+          [startX, endX] = [endX, startX]
+        }
+        console.log('startX, endX', startX, endX)
+        for (let i = startX; i < endX; i += 2) {
+          const vector = {
+            x: i,
+            y,
+            direction
+          }
+          if (direction) {
+            vectors.push(vector)
+          } else {
+            vectors.unshift(vector)
+          }
+        }
+        return vectors;
+      }
+      /**
+       * 环形移动
+       * @param startX 开始x位置
+       * @param startY 开始y位置
+       * @param startDeg 开始角度
+       * @param endDeg 结束角度
+       * @param r 半径
+       */
+      getRoundVectors(startX, startY, startDeg, endDeg, r) {
+        const vectors = []
+        const direction = startDeg < endDeg // 开始位置小于结束位置，正方向移动
+        if (!direction) {
+          [endDeg, startDeg] = [startDeg, endDeg]
+        }
+        for (let i = startDeg; i < endDeg; i += 1) {
+          const vector = {
+            x: startX + Math.sin(i / 180 * Math.PI) * r,
+            y: startY - (r - (Math.cos(i / 180 * Math.PI)) * r),
+            direction: i < (endDeg - startDeg) / 2 + startDeg
+          }
+          if (direction) {
+            vectors.push(vector)
+          } else {
+            vectors.unshift(vector)
+          }
+        }
+        return vectors;
+      }
+      // 获取第一次运动轨迹坐标
+      getFirstVectors() {
+        const line1 = this.getLineVectors(0, .64 * width - riderWidth, height - 60 - riderHeight)
+        const round1 = this.getRoundVectors(line1[line1.length - 1].x, line1[line1.length - 1].y, 0, 180, 110)
+        const round2 = this.getRoundVectors(round1[round1.length - 1].x, round1[round1.length - 1].y, 360, 180, 105)
+        const line2 = this.getLineVectors(round2[round2.length - 1].x, round2[round2.length - 1].x + 50 / 750 * width + riderWidth / 2, round2[round2.length - 1].y)
+        const vertical1 = this.getVerticalVectors(line2[line2.length - 1].y, line2[line2.length - 1].y - 200 / 750 * width + riderHeight / 2, line2[line2.length - 1].x, line2[line2.length - 1].direction)
+        return [...line1, ...round1, ...round2, ...line2, ...vertical1]
+      }
+      // 获取第二次运动轨迹坐标
+      getSecondVectors(lastVector) {
+        console.log('lastVector', lastVector);
+        const vertical1 = this.getVerticalVectors(lastVector.y, lastVector.y - 180 / 750 * width - riderHeight / 2, lastVector.x, lastVector.direction)
+        const line1 = this.getLineVectors(vertical1[vertical1.length - 1].x, vertical1[vertical1.length - 1].x - 138 / 750 * width, vertical1[vertical1.length - 1].y)
+        const round1 = this.getRoundVectors(line1[line1.length - 1].x, line1[line1.length - 1].y, 360, 180, 82)
+        const round2 = this.getRoundVectors(round1[round1.length - 1].x, round1[round1.length - 1].y, 0, 180, 108)
+        return [...vertical1, ...line1, ...round1, ...round2]
+      }
+    }
+    riderRight.onload = function(){
+      // let riderPosition = {
+      //   x: 0,
+      //   y: height - 60 - riderHeight,
+      // }
+      let riderPosition = {
+        direction: true,
+        x: 217.91976470810118,
+        y: 1987.0167535327969
+      }
+      let time = 1
+      const track = new Track(width, height, riderWidth, riderHeight)
+      track.renderRider(ctx, riderPosition.x, riderPosition.y, true)
+      trackEle.addEventListener('click', run);
+      function run (e) {
+        var x = e.layerX || e.offsetX;
+        var y = e.layerY || e.offsetY;
+        const isPointInPath = track.isPointInPath(riderPosition, {x, y})
+        if (!isPointInPath) return
+        let vectorsList = []
+        switch(time) {
+          case 0:
+            vectorsList = track.getFirstVectors()
+            break
+          case 1:
+            vectorsList = track.getSecondVectors(riderPosition)
+            break
+          }
+        for (let i = 0; i < vectorsList.length; i++) {
+          setTimeout(() => {
+            const {
+              x,
+              y,
+              direction
+            } = vectorsList[i]
+            track.renderRider(ctx, x, y, direction)
+          }, 16 * i);
+        }
+        riderPosition = vectorsList[vectorsList.length - 1]
+        time += 1
+      }
+    }
+
+    const vectors = []
+  </script>
+</body>
+</html>
