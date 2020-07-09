@@ -155,16 +155,16 @@
       }
     }
     riderRight.onload = function(){
-      // let riderPosition = {
-      //   x: 0,
-      //   y: height - 60 - riderHeight,
-      // }
       let riderPosition = {
-        direction: true,
-        x: 217.91976470810118,
-        y: 1987.0167535327969
+        x: 0,
+        y: height - 60 - riderHeight,
       }
-      let time = 1
+      // let riderPosition = {
+      //   direction: true,
+      //   x: 217.91976470810118,
+      //   y: 1987.0167535327969
+      // }
+      let time = 0
       const track = new Track(width, height, riderWidth, riderHeight)
       track.renderRider(ctx, riderPosition.x, riderPosition.y, true)
       trackEle.addEventListener('click', run);
