@@ -14,14 +14,17 @@
       background: url('//cdn.yonyoucloud.com/cpblog/blogpic/js/canvas/map.jpg');
       background-size: cover;
     }
+    /* html {
+      scroll-behavior: smooth;
+    } */
   </style>
 </head>
 <body>
   <canvas id="track" class="track" style="width: 100%;"></canvas>
   <script>
     const trackEle = document.getElementById('track');
-    const width = window.innerWidth
-    const height = width * 7
+    const width = window.innerWidth   // 画布宽度
+    const height = width * 7   // 画布高度
     trackEle.width = width
     trackEle.height = height
     const ctx = trackEle.getContext('2d')
@@ -137,32 +140,43 @@
         return vectors;
       }
       // 获取第一次运动轨迹坐标
-      getFirstVectors() {
-        const line1 = this.getLineVectors(0, .64 * width - riderWidth, height - 120 / viewHeight * height - riderHeight)
+      getFirstVectors(vector) {
+        const line1 = this.getLineVectors(vector.x, .64 * width - riderWidth, vector.y)
         const round1 = this.getRoundVectors(line1[line1.length - 1].x, line1[line1.length - 1].y, 0, 180, 220 / viewHeight * height)
         const round2 = this.getRoundVectors(round1[round1.length - 1].x, round1[round1.length - 1].y, 360, 180, 210 / viewHeight * height)
         const line2 = this.getLineVectors(round2[round2.length - 1].x, round2[round2.length - 1].x + 50 / viewWidth * width + riderWidth / 2, round2[round2.length - 1].y)
-        const vertical1 = this.getVerticalVectors(line2[line2.length - 1].y, line2[line2.length - 1].y - 200 / viewWidth * width + riderHeight / 2, line2[line2.length - 1].x, line2[line2.length - 1].direction)
+        const vertical1 = this.getVerticalVectors(line2[line2.length - 1].y, line2[line2.length - 1].y - 200 / viewHeight * height + riderHeight / 2, line2[line2.length - 1].x, line2[line2.length - 1].direction)
         return [...line1, ...round1, ...round2, ...line2, ...vertical1]
       }
       // 获取第二次运动轨迹坐标
-      getSecondVectors(lastVector) {
-        const vertical1 = this.getVerticalVectors(lastVector.y, lastVector.y - 174 / viewWidth * width - riderHeight / 2, lastVector.x, lastVector.direction)
+      getSecondVectors(vector) {
+        const vertical1 = this.getVerticalVectors(vector.y, vector.y - 174 / viewHeight * height - riderHeight / 2, vector.x, vector.direction)
         const line1 = this.getLineVectors(vertical1[vertical1.length - 1].x, vertical1[vertical1.length - 1].x - 138 / viewWidth * width, vertical1[vertical1.length - 1].y)
         const round1 = this.getRoundVectors(line1[line1.length - 1].x, line1[line1.length - 1].y, 360, 180, 165 / viewHeight * height)
         const round2 = this.getRoundVectors(round1[round1.length - 1].x, round1[round1.length - 1].y, 0, 180, 215 / viewHeight * height)
         return [...vertical1, ...line1, ...round1, ...round2]
       }
+      // 获取第三次运动轨迹坐标
+      getThirdVectors(vector) {
+        const round1 = this.getRoundVectors(vector.x, vector.y, 360, 180, 212 / viewHeight * height)
+        const line1 = this.getLineVectors(round1[round1.length - 1].x, round1[round1.length - 1].x + 150 / viewWidth * width, round1[round1.length - 1].y)
+        const vertical1 = this.getVerticalVectors(line1[line1.length - 1].y, line1[line1.length - 1].y - 610 / viewHeight * height, line1[line1.length - 1].x, line1[line1.length - 1].direction)
+        const line2 = this.getLineVectors(vertical1[vertical1.length - 1].x, vertical1[vertical1.length - 1].x - 210 / viewWidth * width, vertical1[vertical1.length - 1].y)
+        const round2 = this.getRoundVectors(line2[line2.length - 1].x, line2[line2.length - 1].y, 360, 180, 180 / viewHeight * height)
+        return [...round1, ...line1, ...vertical1, ...line2, ...round2]
+      }
     }
     riderRight.onload = function(){
+      // 滚动到底部
+      window.scroll(0, height)
       let riderPosition = {
         x: 0,
-        y: height - 120 / 5250 * height - riderHeight,
+        y: height - 120 / viewHeight * height - riderHeight,
       }
       // let riderPosition = {
-      //   direction: true,
-      //   x: 217.91976470810118,
-      //   y: 1987.0167535327969
+      //   direction: false,
+      //   x: 150.79589840010917,
+      //   y: 1471.0331263034848
       // }
       let time = 0
       let canClick = true // 是否可点击，骑手运动时不能点击
@@ -173,17 +187,21 @@
         var x = e.layerX || e.offsetX;
         var y = e.layerY || e.offsetY;
         const isPointInPath = track.isPointInPath(riderPosition, {x, y})
-        if (!isPointInPath && !canClick) return
+        // isPointInPath点击骑手，canClick运动时不能点击，time>3只能走3段，后面的一样添加就行
+        if (!isPointInPath || !canClick || time >= 3) return
         let vectorsList = []
         switch(time) {
           case 0:
-            vectorsList = track.getFirstVectors()
+            vectorsList = track.getFirstVectors(riderPosition)
             break
           case 1:
             vectorsList = track.getSecondVectors(riderPosition)
             break
-          }
-          canClick = false
+          case 2:
+            vectorsList = track.getThirdVectors(riderPosition)
+            break
+        }
+        canClick = false
         for (let i = 0; i < vectorsList.length; i++) {
           setTimeout(() => {
             const {
@@ -198,6 +216,7 @@
           }, 16 * i);
         }
         riderPosition = vectorsList[vectorsList.length - 1]
+        console.log('riderPosition', riderPosition)
         time += 1
       }
     }
