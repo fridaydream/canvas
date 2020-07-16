@@ -23,6 +23,7 @@ var HelloWorldLayer = cc.Layer.extend({
         var action = cc.moveBy(1, cc.p(0, MAP_HEIGHT / 2 - size.height / 2))
         this.mapSprite.runAction(action);
         this.mapSprite.addChild(this.spriteRider, 2)
+        this.showEffect()
         cc.eventManager.addListener({
           event: cc.EventListener.TOUCH_ONE_BY_ONE,
           swallowTouches: true,
@@ -46,6 +47,11 @@ var HelloWorldLayer = cc.Layer.extend({
         return true;
       }
       return false;
+    },
+    showEffect: function() {
+      this._particleSystem = new cc.ParticleSystem(res.snow_plist)
+      this._particleSystem.setAutoRemoveOnFinish(true)
+      this.addChild(this._particleSystem, 3)
     },
     moveRider: function() {
       var that = this

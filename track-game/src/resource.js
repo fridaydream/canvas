@@ -26,6 +26,7 @@ var res = {
     HelloWorld_png : "res/HelloWorld.png",
     bg_map: "res/map.jpg",
     rider_png: "res/rider.png",
+    snow_plist: "res/snow.plist",
 };
 
 var g_resources = [];
