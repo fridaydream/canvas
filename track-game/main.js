@@ -10,11 +10,11 @@ cc.game.onStart = function(){
     if (sys.isMobile && 
         sys.browserType !== sys.BROWSER_TYPE_BAIDU &&
         sys.browserType !== sys.BROWSER_TYPE_WECHAT) {
-        cc.view.enableAutoFullScreen(true);
+        cc.view.enableAutoFullScreen(false);
     }
 
     // Adjust viewport meta
-    cc.view.adjustViewPort(true);
+    cc.view.adjustViewPort(false);
 
     // Uncomment the following line to set a fixed orientation for your game
     // cc.view.setOrientation(cc.ORIENTATION_PORTRAIT);

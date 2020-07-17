@@ -27,6 +27,7 @@ var res = {
     bg_map: "res/map.jpg",
     rider_png: "res/rider.png",
     snow_plist: "res/snow.plist",
+    bg_mp3: "res/meetyou.mp3",
 };
 
 var g_resources = [];
