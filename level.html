@@ -54,8 +54,6 @@
       this.textColor = '#878C9B'
       // 图标大小
       this.imageSize = imageSize
-      // 图片缓存
-      this.imageRenderList = []
     }
     // 绘制整体进度条
     renderLine (ctx) {
@@ -68,7 +66,7 @@
     /**
     * 绘制进度条进度
     * @param {CanvasContext} ctx canvas上下文
-    * @param {boolean} isCurrent canvas上下文
+    * @param {boolean} isCurrent 是否当月
     * @param {number} width 当前进度条的长度
     * @param {number} tipHeight 说明文案虚线高度
     * @param {string} text 提示文案
@@ -82,6 +80,7 @@
       ctx.lineTo(this.startX + width - this.processRuntimeHeight, this.startY + this.processRuntimeHeight)
       ctx.lineTo(this.startX, this.startY + this.processRuntimeHeight)
       ctx.fill()
+      
       ctx.closePath()
       this.renderScoreTip(ctx, this.startX + width, this.startY - 4 * this.scale, tipHeight, color, text)
     }
@@ -100,22 +99,6 @@
       this.renderText(ctx, text, `${this.scale * 12}px PingFangSC-Medium`, '#fff', x, y - lineHeight - rectHeight / 2 + 2 * this.scale)
       ctx.closePath()
     }
-    // getRenderImageList (ctx) {
-    //   const length = this.data.length
-    //   this.imageRenderList = []
-    //   return new Promise((resolve, reject) => {
-    //     for (let i = 0; i < length; i++) {
-    //       const img = new Image()
-    //       img.src = this.imageList[i]
-    //       img.onload = () => {
-    //         this.imageRenderList.push(img)
-    //         if (this.imageRenderList.length === length) {
-    //           resolve(true)
-    //         }
-    //       }
-    //     }
-    //   })
-    // }
     async getRenderImageList () {
       const length = this.data.length
       const imageRenderList = []
@@ -213,7 +196,7 @@
     const currentColor = '#F94C09'
     const previousColor = '#BBBBBB'
     const currentScore = 170
-    const previousScore = 360
+    const previousScore = 370
     const resultList = [{
       text: '黄铜',
       title: '0分',
@@ -267,7 +250,7 @@
     const imageRenderList = await level.getRenderImageList()
     let currentRuntimeWidth = 0
     let previousRuntimeWidth = 0
-    const totalSpeed = 20 / processWidth
+    const totalSpeed = 10 / processWidth
     let currentSpeed = currentWidth * totalSpeed
     let previousSpeed = previousWidth * totalSpeed
     let timer
