@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>process进度变换</title>
+</head>
+<body>
+  <canvas id="level" style="width: 100%;" class="level"></canvas>
+<script>
+  class Level {
+    constructor ({
+      canvasWidth,
+      canvasHeight,
+      scale,
+      processWidth,
+      processHeight,
+      imageList = [],
+      startX,
+      startY,
+      processRuntimeHeight,
+      currentColor,
+      previousColor,
+      data,
+      imageSize
+    }) {
+      // 画布宽度
+      this.canvasWidth = canvasWidth
+      // 画布高度
+      this.canvasHeight = canvasHeight
+      // 页面dpi
+      this.scale = scale
+      // 进度条整体长度
+      this.processWidth = processWidth
+      // 进度条整体高度
+      this.processHeight = processHeight
+      // 不同等级图标
+      this.imageList = imageList
+      // 后台返回的数据
+      this.data = data
+      // 开始x位置
+      this.startX = startX
+      // 开始y位置
+      this.startY = startY
+      // 进度条展示的高度
+      this.processRuntimeHeight = processRuntimeHeight
+      // 当前月份积分颜色
+      this.currentColor = currentColor
+      // 上月份积分颜色
+      this.previousColor = previousColor
+      // 进度条整体颜色
+      this.LineColor = '#E6E6E6'
+      // 文本颜色
+      this.textColor = '#878C9B'
+      // 图标大小
+      this.imageSize = imageSize
+      // 图片缓存
+      this.imageRenderList = []
+    }
+    // 绘制整体进度条
+    renderLine (ctx) {
+      ctx.beginPath()
+      ctx.fillStyle = this.LineColor
+      ctx.rect(this.startX, this.startY, this.processWidth, this.processHeight)
+      ctx.fill()
+      ctx.closePath()
+    }
+    /**
+    * 绘制进度条进度
+    * @param {CanvasContext} ctx canvas上下文
+    * @param {boolean} isCurrent canvas上下文
+    * @param {number} width 当前进度条的长度
+    * @param {number} tipHeight 说明文案虚线高度
+    * @param {string} text 提示文案
+    */
+    renderProcess (ctx, isCurrent, width, tipHeight, text) {
+      const color = isCurrent ? this.currentColor : this.previousColor
+      ctx.beginPath()
+      ctx.fillStyle = color
+      ctx.moveTo(this.startX, this.startY)
+      ctx.lineTo(this.startX + width, this.startY)
+      ctx.lineTo(this.startX + width - this.processRuntimeHeight, this.startY + this.processRuntimeHeight)
+      ctx.lineTo(this.startX, this.startY + this.processRuntimeHeight)
+      ctx.fill()
+      ctx.closePath()
+      this.renderScoreTip(ctx, this.startX + width, this.startY - 4 * this.scale, tipHeight, color, text)
+    }
+    renderScoreTip (ctx, x, y, lineHeight, color, text) {
+      ctx.beginPath()
+      ctx.setLineDash([3 * this.scale, 3 * this.scale])
+      ctx.lineWidth = 2 * this.scale
+      ctx.strokeStyle = color
+      ctx.moveTo(x, y)
+      ctx.lineTo(x, y - lineHeight)
+      ctx.stroke()
+      ctx.moveTo(x, y - lineHeight - 5 * this.scale)
+      const rectWidth = 60 * this.scale
+      const rectHeight = 24 * this.scale
+      this.roundRect(ctx, color, x - rectWidth / 2, y - lineHeight - rectHeight - 2 * this.scale, rectWidth, rectHeight, 2 * this.scale)
+      this.renderText(ctx, text, `${this.scale * 12}px PingFangSC-Medium`, '#fff', x, y - lineHeight - rectHeight / 2 + 2 * this.scale)
+      ctx.closePath()
+    }
+    // getRenderImageList (ctx) {
+    //   const length = this.data.length
+    //   this.imageRenderList = []
+    //   return new Promise((resolve, reject) => {
+    //     for (let i = 0; i < length; i++) {
+    //       const img = new Image()
+    //       img.src = this.imageList[i]
+    //       img.onload = () => {
+    //         this.imageRenderList.push(img)
+    //         if (this.imageRenderList.length === length) {
+    //           resolve(true)
+    //         }
+    //       }
+    //     }
+    //   })
+    // }
+    async getRenderImageList () {
+      const length = this.data.length
+      const imageRenderList = []
+      for (let i = 0; i < length; i++) {
+        imageRenderList.push(this.getImageData(this.imageList[i]))
+      }
+      return Promise.all(imageRenderList)
+    }
+    getImageData (data) {
+      return new Promise((resolve, reject) => {
+        const img = new Image()
+        img.src = data
+        img.onload = () => {
+          resolve(img)
+        }
+      })
+    }
+    renderLevelList (ctx, imageRenderList) {
+      const length = imageRenderList.length
+      const perWidth = this.processWidth / (length - 1)
+      for (let i = 0; i < length; i++) {
+        ctx.drawImage(imageRenderList[i], this.startX + perWidth * i - this.imageSize / 2, this.startY - this.imageSize / 2, this.imageSize, this.imageSize)
+        this.renderText(ctx, this.data[i].title, `${this.scale * 12}px PingFangSC-Regular`, this.textColor, this.startX + perWidth * i, this.startY - this.imageSize / 2 + 40 * this.scale)
+        this.renderText(ctx, this.data[i].text, `${this.scale * 13}px PingFangSC-Regular`, this.textColor, this.startX + perWidth * i, this.startY - this.imageSize / 2 + 60 * this.scale)
+      }
+    }
+    /**
+    * @param {CanvasContext} ctx canvas上下文
+    * @param {number} x 圆角矩形选区的左上角 x坐标
+    * @param {number} y 圆角矩形选区的左上角 y坐标
+    * @param {number} w 圆角矩形选区的宽度
+    * @param {number} h 圆角矩形选区的高度
+    * @param {number} r 圆角的半径
+    */
+    roundRect (ctx, color, x, y, w, h, r) {
+      ctx.save()
+      // 开始绘制
+      ctx.beginPath()
+      // 因为边缘描边存在锯齿，最好指定使用 transparent 填充
+      ctx.fillStyle = color
+      // 左上角
+      ctx.arc(x + r, y + r, r, Math.PI, Math.PI * 1.5)
+      // border-top
+      ctx.moveTo(x + r, y)
+      ctx.lineTo(x + w - r, y)
+      ctx.lineTo(x + w, y + r)
+      // 右上角
+      ctx.arc(x + w - r, y + r, r, Math.PI * 1.5, Math.PI * 2)
+      // border-right
+      ctx.lineTo(x + w, y + h - r)
+      ctx.lineTo(x + w - r, y + h)
+      // 右下角
+      ctx.arc(x + w - r, y + h - r, r, 0, Math.PI * 0.5)
+      // border-bottom
+      ctx.lineTo(x + r, y + h)
+      ctx.lineTo(x, y + h - r)
+      // 左下角
+      ctx.arc(x + r, y + h - r, r, Math.PI * 0.5, Math.PI)
+      // border-left
+      ctx.lineTo(x, y + r)
+      ctx.lineTo(x + r, y)
+      // 这里是使用 fill 还是 stroke都可以，二选一即可，但是需要与上面对应
+      ctx.fill()
+      // ctx.stroke()
+      ctx.closePath()
+      // 剪切
+      ctx.clip()
+      ctx.restore()
+    }
+    // 绘制文本
+    renderText (ctx, text, font, color, x, y) {
+      ctx.font = font
+      ctx.textAlign = 'center'
+      ctx.fillStyle = color
+      ctx.fillText(text, x, y)
+    }
+  }
+  async function handler () {
+    const levelCanvas = document.getElementById('level')
+    const canvasStyle = levelCanvas.getBoundingClientRect()
+    const ctx = levelCanvas.getContext('2d')
+    const {
+      width,
+      height
+    } = canvasStyle
+    const scale = window.devicePixelRatio || 3
+    const canvasWidth = width * scale
+    const canvasHeight = height * scale
+    const startX = 24 * scale
+    const startY = 85 * scale
+    const processWidth = canvasWidth - startX * 2
+    const processHeight = 4 * scale
+    const processRuntimeHeight = 6 * scale
+    const imageSize = 24 * scale
+    const currentColor = '#F94C09'
+    const previousColor = '#BBBBBB'
+    const currentScore = 170
+    const previousScore = 360
+    const resultList = [{
+      text: '黄铜',
+      title: '0分',
+      val: 0
+    }, {
+      text: '白银',
+      title: '100分',
+      val: 100
+    }, {
+      text: '黄金',
+      title: '200分',
+      val: 200
+    }, {
+      text: '白金',
+      title: '300分',
+      val: 300
+    }, {
+      text: '钻石',
+      title: '400分',
+      val: 400
+    }]
+    const maxScore = resultList[resultList.length - 1].val
+    const currentWidth = currentScore / maxScore * processWidth > 0 ? currentScore / maxScore * processWidth : 0
+    const previousWidth = previousScore / maxScore * processWidth > 0 ? previousScore / maxScore * processWidth : 0
+    const currentText = `本月${currentScore}分`
+    const previousText = `上月${previousScore}分`
+    levelCanvas.width = canvasWidth
+    levelCanvas.height = canvasHeight
+    const imageList = [
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_0.png',
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_1.png',
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_2.png',
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_3.png',
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_4.png'
+    ]
+    const level = new Level({
+      canvasWidth,
+      canvasHeight,
+      scale,
+      processWidth,
+      processHeight,
+      startX,
+      startY,
+      processRuntimeHeight,
+      imageSize,
+      imageList,
+      currentColor,
+      previousColor,
+      data: resultList
+    })
+    const imageRenderList = await level.getRenderImageList()
+    let currentRuntimeWidth = 0
+    let previousRuntimeWidth = 0
+    const totalSpeed = 20 / processWidth
+    let currentSpeed = currentWidth * totalSpeed
+    let previousSpeed = previousWidth * totalSpeed
+    let timer
+    ;(function run () {
+      if (currentWidth === 0 || previousWidth === 0 || previousRuntimeWidth < previousWidth || currentRuntimeWidth < currentWidth) {
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+        level.renderLine(ctx)
+        level.renderProcess(ctx, false, previousRuntimeWidth, 12 * scale, previousText)
+        level.renderProcess(ctx, true, currentRuntimeWidth, 40 * scale, currentText)
+        if (previousRuntimeWidth < previousWidth) {
+          previousRuntimeWidth += previousSpeed
+        } else {
+          previousRuntimeWidth = previousWidth
+        }
+        if (currentRuntimeWidth <= currentWidth) {
+          currentRuntimeWidth += currentSpeed
+        } else {
+          currentRuntimeWidth = currentWidth
+        }
+        level.renderLevelList(ctx, imageRenderList)
+        timer = requestAnimationFrame(run)
+      } else {
+        cancelAnimationFrame(timer)
+      }
+    })()     
+  }
+  handler()
+</script>
+</body>
+</html>
