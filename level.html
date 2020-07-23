@@ -8,6 +8,27 @@
 <body>
   <canvas id="level" style="width: 100%;" class="level"></canvas>
 <script>
+  const levelList = [{
+    text: '黄铜',
+    title: '0分',
+    val: 0
+  }, {
+    text: '白银',
+    title: '50分',
+    val: 50
+  }, {
+    text: '黄金',
+    title: '200分',
+    val: 200
+  }, {
+    text: '白金',
+    title: '350分',
+    val: 350
+  }, {
+    text: '钻石',
+    title: '800分',
+    val: 800
+  }]
   class Level {
     constructor ({
       canvasWidth,
@@ -15,14 +36,14 @@
       scale,
       processWidth,
       processHeight,
-      imageList = [],
+      imageList,
       startX,
       startY,
       processRuntimeHeight,
       currentColor,
       previousColor,
-      data,
-      imageSize
+      levelList,
+      imageSize,
     }) {
       // 画布宽度
       this.canvasWidth = canvasWidth
@@ -36,8 +57,8 @@
       this.processHeight = processHeight
       // 不同等级图标
       this.imageList = imageList
-      // 后台返回的数据
-      this.data = data
+      // 等级列表
+      this.levelList = levelList
       // 开始x位置
       this.startX = startX
       // 开始y位置
@@ -64,13 +85,13 @@
       ctx.closePath()
     }
     /**
-    * 绘制进度条进度
-    * @param {CanvasContext} ctx canvas上下文
-    * @param {boolean} isCurrent 是否当月
-    * @param {number} width 当前进度条的长度
-    * @param {number} tipHeight 说明文案虚线高度
-    * @param {string} text 提示文案
-    */
+     * 绘制进度条进度
+     * @param {CanvasContext} ctx canvas上下文
+     * @param {boolean} isCurrent 是否当前进度条
+     * @param {number} width 进度条的长度
+     * @param {number} tipHeight 说明文案虚线高度
+     * @param {string} text 提示文案
+     */
     renderProcess (ctx, isCurrent, width, tipHeight, text) {
       const color = isCurrent ? this.currentColor : this.previousColor
       ctx.beginPath()
@@ -83,6 +104,15 @@
       ctx.closePath()
       this.renderScoreTip(ctx, this.startX + width, this.startY - 4 * this.scale, tipHeight, color, text)
     }
+    /**
+     * 绘制提示信息
+     * @param {CanvasContext} ctx canvas上下文
+     * @param {number} x 绘制坐标的x
+     * @param {number} y 绘制坐标的y
+     * @param {number} lineHeight 说明文案虚线高度
+     * @param {string} color 线的颜色
+     * @param {string} text 提示文案
+     */
     renderScoreTip (ctx, x, y, lineHeight, color, text) {
       ctx.beginPath()
       ctx.setLineDash([3 * this.scale, 3 * this.scale])
@@ -94,18 +124,22 @@
       ctx.moveTo(x, y - lineHeight - 5 * this.scale)
       const rectWidth = 60 * this.scale
       const rectHeight = 24 * this.scale
+      // 画圆角的矩形
       this.roundRect(ctx, color, x - rectWidth / 2, y - lineHeight - rectHeight - 2 * this.scale, rectWidth, rectHeight, 2 * this.scale)
+      // 画提示文字
       this.renderText(ctx, text, `${this.scale * 12}px PingFangSC-Medium`, '#fff', x, y - lineHeight - rectHeight / 2 + 2 * this.scale)
       ctx.closePath()
     }
+    // 获取排序的异步图片资源
     async getRenderImageList () {
-      const length = this.data.length
+      const length = this.levelList.length
       const imageRenderList = []
       for (let i = 0; i < length; i++) {
         imageRenderList.push(this.getImageData(this.imageList[i]))
       }
       return Promise.all(imageRenderList)
     }
+    // 单个图片promise化
     getImageData (data) {
       return new Promise((resolve, reject) => {
         const img = new Image()
@@ -115,23 +149,24 @@
         }
       })
     }
+    // 绘制进度条框架
     renderLevelList (ctx, imageRenderList) {
       const length = imageRenderList.length
       const perWidth = this.processWidth / (length - 1)
       for (let i = 0; i < length; i++) {
         ctx.drawImage(imageRenderList[i], this.startX + perWidth * i - this.imageSize / 2, this.startY - this.imageSize / 2, this.imageSize, this.imageSize)
-        this.renderText(ctx, this.data[i].title, `${this.scale * 12}px PingFangSC-Regular`, this.textColor, this.startX + perWidth * i, this.startY - this.imageSize / 2 + 40 * this.scale)
-        this.renderText(ctx, this.data[i].text, `${this.scale * 13}px PingFangSC-Regular`, this.textColor, this.startX + perWidth * i, this.startY - this.imageSize / 2 + 60 * this.scale)
+        this.renderText(ctx, this.levelList[i].title, `${this.scale * 12}px PingFangSC-Regular`, this.textColor, this.startX + perWidth * i, this.startY - this.imageSize / 2 + 40 * this.scale)
+        this.renderText(ctx, this.levelList[i].text, `${this.scale * 13}px PingFangSC-Regular`, this.textColor, this.startX + perWidth * i, this.startY - this.imageSize / 2 + 60 * this.scale)
       }
     }
     /**
-    * @param {CanvasContext} ctx canvas上下文
-    * @param {number} x 圆角矩形选区的左上角 x坐标
-    * @param {number} y 圆角矩形选区的左上角 y坐标
-    * @param {number} w 圆角矩形选区的宽度
-    * @param {number} h 圆角矩形选区的高度
-    * @param {number} r 圆角的半径
-    */
+     * @param {CanvasContext} ctx canvas上下文
+     * @param {number} x 圆角矩形选区的左上角 x坐标
+     * @param {number} y 圆角矩形选区的左上角 y坐标
+     * @param {number} w 圆角矩形选区的宽度
+     * @param {number} h 圆角矩形选区的高度
+     * @param {number} r 圆角的半径
+     */
     roundRect (ctx, color, x, y, w, h, r) {
       ctx.save()
       // 开始绘制
@@ -175,19 +210,65 @@
       ctx.fillText(text, x, y)
     }
   }
+
+  // 2分法查找目标所在区间的index
+  function binarySearchIndex (arr = [], target) {
+    let left = 0
+    let right = arr.length
+    while (left <= right) {
+      const center = Math.floor((left + right) / 2)
+      if (target < arr[center]) {
+        right = center - 1
+      } else {
+        left = center + 1
+      }
+    }
+    return right
+  }
+
+  /**
+   * 获取运动结束时进度条长度
+   * @param {number} score 当前分数
+   * @param {number} processWidth 进度条总长度
+   * @param {array} levelList 等级数组
+   */
+  function getProcessResultWidth (score, processWidth, levelList = []) {
+    const maxScore = levelList[levelList.length - 1].val
+    // 分数负数时处理
+    score = score > 0 ? score : 0
+    // 分数大于当前最大分数处理
+    score = score > maxScore ? maxScore : score
+    if (score === maxScore) {
+      return processWidth
+    }
+    const scoreList = levelList.map(li => li.val)
+    const index = binarySearchIndex(scoreList, score)
+    // 每份的长度
+    const perWidth = processWidth / (scoreList.length - 1)
+    // 区间长度
+    const blockWidth = scoreList[index + 1] - scoreList[index]
+    // 所在区间当前分数的长度
+    const matchWidth = score - scoreList[index]
+    return perWidth * index + matchWidth / blockWidth * perWidth
+  }
   async function handler () {
     const levelCanvas = document.getElementById('level')
-    // 获取canvas style的大小
+    // 获取当前style样式的宽高
     const canvasStyle = levelCanvas.getBoundingClientRect()
     const ctx = levelCanvas.getContext('2d')
     const {
       width,
       height
     } = canvasStyle
+    // 当前dpi
     const scale = window.devicePixelRatio || 3
+    // 画布的宽度进行等比缩放
     const canvasWidth = width * scale
+    // 画布的高度进行等比缩放
     const canvasHeight = height * scale
-    const startX = 24 * scale
+    levelCanvas.width = canvasWidth
+    levelCanvas.height = canvasHeight
+    const startX = 34 * scale
     const startY = 85 * scale
     const processWidth = canvasWidth - startX * 2
     const processHeight = 4 * scale
@@ -195,42 +276,19 @@
     const imageSize = 24 * scale
     const currentColor = '#F94C09'
     const previousColor = '#BBBBBB'
-    const currentScore = 170
-    const previousScore = 370
-    const resultList = [{
-      text: '黄铜',
-      title: '0分',
-      val: 0
-    }, {
-      text: '白银',
-      title: '100分',
-      val: 100
-    }, {
-      text: '黄金',
-      title: '200分',
-      val: 200
-    }, {
-      text: '白金',
-      title: '300分',
-      val: 300
-    }, {
-      text: '钻石',
-      title: '400分',
-      val: 400
-    }]
-    const maxScore = resultList[resultList.length - 1].val
-    const currentWidth = currentScore / maxScore * processWidth > 0 ? currentScore / maxScore * processWidth : 0
-    const previousWidth = previousScore / maxScore * processWidth > 0 ? previousScore / maxScore * processWidth : 0
+    const currentScore = 250
+    const previousScore = 720
+    const currentWidth = getProcessResultWidth(currentScore, processWidth, levelList)
+    const previousWidth = getProcessResultWidth(previousScore, processWidth, levelList)
     const currentText = `本月${currentScore}分`
     const previousText = `上月${previousScore}分`
-    levelCanvas.width = canvasWidth
-    levelCanvas.height = canvasHeight
     const imageList = [
       'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_0.png',
       'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_1.png',
       'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_2.png',
       'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_3.png',
-      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_4.png'
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_4.png',
+      'https://erp-1258916733.cos.ap-shanghai.myqcloud.com/knight-h5/phase/phaseLevel_5.png',
     ]
     const level = new Level({
       canvasWidth,
@@ -245,19 +303,19 @@
       imageList,
       currentColor,
       previousColor,
-      data: resultList
+      levelList,
     })
-    // 拿到排序好的图标列表
+    // 拿到排序好的图标列表缓存起来
     const imageRenderList = await level.getRenderImageList()
     let currentRuntimeWidth = 0
     let previousRuntimeWidth = 0
-    // 计算全部长度速度
+    // 计算全部长度速度(processWidth大小与列表最大分数值没关系，只与屏幕宽度有关)
     const totalSpeed = 10 / processWidth
     let currentSpeed = currentWidth * totalSpeed
     let previousSpeed = previousWidth * totalSpeed
     let timer
     ;(function run () {
-      if (currentWidth === 0 || previousWidth === 0 || previousRuntimeWidth < previousWidth || currentRuntimeWidth < currentWidth) {
+      if (previousRuntimeWidth <= previousWidth || currentRuntimeWidth <= currentWidth) {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
         level.renderLine(ctx)
         level.renderProcess(ctx, false, previousRuntimeWidth, 12 * scale, previousText)
@@ -273,11 +331,14 @@
           currentRuntimeWidth = currentWidth
         }
         level.renderLevelList(ctx, imageRenderList)
-        timer = requestAnimationFrame(run)
+        // 防止死循环
+        if (currentRuntimeWidth < currentWidth || previousRuntimeWidth < previousWidth) {
+          timer = requestAnimationFrame(run)
+        }
       } else {
         cancelAnimationFrame(timer)
       }
-    })()     
+    })()
   }
   handler()
 </script>
