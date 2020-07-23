@@ -49,7 +49,7 @@
       this.canvasWidth = canvasWidth
       // 画布高度
       this.canvasHeight = canvasHeight
-      // 页面dpi
+      // 页面dpr
       this.scale = scale
       // 进度条整体长度
       this.processWidth = processWidth
@@ -260,7 +260,7 @@
       width,
       height
     } = canvasStyle
-    // 当前dpi
+    // 当前dpr
     const scale = window.devicePixelRatio || 3
     // 画布的宽度进行等比缩放
     const canvasWidth = width * scale
