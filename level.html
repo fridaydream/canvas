@@ -80,7 +80,6 @@
       ctx.lineTo(this.startX + width - this.processRuntimeHeight, this.startY + this.processRuntimeHeight)
       ctx.lineTo(this.startX, this.startY + this.processRuntimeHeight)
       ctx.fill()
-      
       ctx.closePath()
       this.renderScoreTip(ctx, this.startX + width, this.startY - 4 * this.scale, tipHeight, color, text)
     }
@@ -178,6 +177,7 @@
   }
   async function handler () {
     const levelCanvas = document.getElementById('level')
+    // 获取canvas style的大小
     const canvasStyle = levelCanvas.getBoundingClientRect()
     const ctx = levelCanvas.getContext('2d')
     const {
@@ -247,9 +247,11 @@
       previousColor,
       data: resultList
     })
+    // 拿到排序好的图标列表
     const imageRenderList = await level.getRenderImageList()
     let currentRuntimeWidth = 0
     let previousRuntimeWidth = 0
+    // 计算全部长度速度
     const totalSpeed = 10 / processWidth
     let currentSpeed = currentWidth * totalSpeed
     let previousSpeed = previousWidth * totalSpeed
