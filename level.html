@@ -90,9 +90,8 @@
      * @param {boolean} isCurrent 是否当前进度条
      * @param {number} width 进度条的长度
      * @param {number} tipHeight 说明文案虚线高度
-     * @param {string} text 提示文案
      */
-    renderProcess (ctx, isCurrent, width, tipHeight, text) {
+    renderProcess (ctx, isCurrent, width, tipHeight) {
       const color = isCurrent ? this.currentColor : this.previousColor
       ctx.beginPath()
       ctx.fillStyle = color
@@ -102,7 +101,6 @@
       ctx.lineTo(this.startX, this.startY + this.processRuntimeHeight)
       ctx.fill()
       ctx.closePath()
-      this.renderScoreTip(ctx, this.startX + width, this.startY - 4 * this.scale, tipHeight, color, text)
     }
     /**
      * 绘制提示信息
@@ -110,10 +108,11 @@
      * @param {number} x 绘制坐标的x
      * @param {number} y 绘制坐标的y
      * @param {number} lineHeight 说明文案虚线高度
-     * @param {string} color 线的颜色
+     * @param {boolean} isCurrent 是否当前进度条
      * @param {string} text 提示文案
      */
-    renderScoreTip (ctx, x, y, lineHeight, color, text) {
+    renderScoreTip (ctx, x, y, lineHeight, isCurrent, text) {
+      const color = isCurrent ? this.currentColor : this.previousColor
       ctx.beginPath()
       ctx.setLineDash([3 * this.scale, 3 * this.scale])
       ctx.lineWidth = 2 * this.scale
@@ -276,8 +275,8 @@
     const imageSize = 24 * scale
     const currentColor = '#F94C09'
     const previousColor = '#BBBBBB'
-    const currentScore = 250
-    const previousScore = 720
+    const currentScore = 720
+    const previousScore = 700
     const currentWidth = getProcessResultWidth(currentScore, processWidth, levelList)
     const previousWidth = getProcessResultWidth(previousScore, processWidth, levelList)
     const currentText = `本月${currentScore}分`
@@ -320,6 +319,8 @@
         level.renderLine(ctx)
         level.renderProcess(ctx, false, previousRuntimeWidth, 12 * scale, previousText)
         level.renderProcess(ctx, true, currentRuntimeWidth, 40 * scale, currentText)
+        level.renderScoreTip(ctx, startX + currentRuntimeWidth, startY - 4 * scale, 40 * scale, true, currentText)
+        level.renderScoreTip(ctx, startX + previousRuntimeWidth, startY - 4 * scale, 12 * scale, false, previousText)
         if (previousRuntimeWidth < previousWidth) {
           previousRuntimeWidth += previousSpeed
         } else {
